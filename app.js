@@ -12,13 +12,10 @@ app.use(express.json()); // Add middleware to parse JSON bodies
 app.use(cors()); // Enable CORS for all routes
 
 // MongoDB connection
-mongoose.connect(
-  'mongodb+srv://snehdholia:<qa44b6VPf66oT4Mo>@cluster0.18ax1oy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
-);
+mongoose.connect(  	'mongodb+srv://snehdholia:<qa44b6VPf66oT4Mo>@cluster0.18ax1oy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 const conn = mongoose.connection;
 
 // Initialize GridFS
