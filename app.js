@@ -1,32 +1,36 @@
 const express = require('express');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
-const path = require('path');
+const mongoose = require('mongoose');
+const Grid = require('gridfs-stream');
+const { Readable } = require('stream');
+const cors = require('cors');
 
 const app = express();
 
-app.use(
-  cors({
-    origin: ['https://html-hazel-mu.vercel.app/'],
-    methods: ['POST', 'GET'],
-    credential: true,
-  })
-);
+app.use(express.json()); // Add middleware to parse JSON bodies
+app.use(cors()); // Enable CORS for all routes
 
-// Set up storage for multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './uploads'); // Files will be saved in the 'uploads' directory
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname); // Keep the original file name
-  },
+// MongoDB connection
+mongoose.connect(
+  'mongodb+srv://snehdholia:<qa44b6VPf66oT4Mo>@cluster0.18ax1oy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+);
+const conn = mongoose.connection;
+
+// Initialize GridFS
+let gfs;
+conn.once('open', () => {
+  gfs = Grid(conn.db, mongoose.mongo);
+  gfs.collection('uploads');
 });
 
+// Set up storage for multer
+const storage = multer.memoryStorage(); // Store files in memory
 const upload = multer({ storage: storage });
-
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Form for uploading file and specifying email
 app.get('/', (req, res) => {
@@ -37,11 +41,26 @@ app.get('/', (req, res) => {
 app.post('/upload', upload.single('file'), (req, res) => {
   const email = req.body.email;
   const file = req.file;
+  const userInput = req.body.userInput; // Assuming there's some user input data
 
   // Validate email and file
-  if (!email || !file) {
-    return res.status(400).send('Email and file are required');
+  if (!email || !file || !userInput) {
+    return res.status(400).send('Email, file, and user input are required');
   }
+
+  // Create a readable stream from the uploaded file
+  const readableStream = new Readable();
+  readableStream.push(file.buffer);
+  readableStream.push(null);
+
+  // Create write stream to GridFS
+  const writeStream = gfs.createWriteStream({
+    filename: file.originalname,
+    metadata: { userInput: userInput }, // Store user input as metadata
+  });
+
+  // Pipe the file data to GridFS
+  readableStream.pipe(writeStream);
 
   // Send email with file attachment
   const transporter = nodemailer.createTransport({
@@ -56,11 +75,11 @@ app.post('/upload', upload.single('file'), (req, res) => {
     from: 'testingqcwodn@gmail.com',
     to: email,
     subject: 'File from Web App',
-    text: 'Please find the attached file',
+    text: `User Input: ${userInput}`, // Include user input in the email body
     attachments: [
       {
         filename: file.originalname,
-        path: file.path,
+        content: file.buffer, // Attach file directly from memory buffer
       },
     ],
   };
