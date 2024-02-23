@@ -1,23 +1,23 @@
 const express = require('express');
-const multer = require('multer');
+// const multer = require('multer');
 const nodemailer = require('nodemailer');
 const path = require('path');
 
 const app = express();
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './uploads'); // Files will be saved in the 'uploads' directory
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname); // Keep the original file name
-  },
-});
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, './uploads'); // Files will be saved in the 'uploads' directory
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, file.originalname); // Keep the original file name
+//   },
+// });
 
-const upload = multer({ storage: storage });
+// const upload = multer({ storage: storage });
 
 // Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Form for uploading file and specifying email
 app.get('/', (req, res) => {
@@ -25,13 +25,13 @@ app.get('/', (req, res) => {
 });
 
 // Handle file upload and email sending
-app.post('/upload', upload.single('file'), (req, res) => {
-  const email = req.body.email;
-  const file = req.file;
+app.post('/upload', (req, res) => {
+  // const email = req.body.email;
+  // const file = req.file;
 
   // Validate email and file
-  if (!email || !file) {
-    return res.status(400).send('Email and file are required');
+  // if (!email || !file) {
+  //   return res.status(400).send('Email and file are required');
   }
 
   // Send email with file attachment
@@ -48,12 +48,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
     to: email,
     subject: 'File from Web App',
     text: 'Please find the attached file',
-    attachments: [
-      {
-        filename: file.originalname,
-        path: file.path,
-      },
-    ],
+    
   };
 
   transporter.sendMail(mailOptions, function (error, info) {
