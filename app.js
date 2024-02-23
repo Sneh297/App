@@ -26,6 +26,7 @@ app.get('/', (req, res) => {
 
 // Handle file upload and email sending
 app.post('/upload', (req, res) => {
+  console.log("sending mail");
   const email = req.body.email;
   // const file = req.file;
 
