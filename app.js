@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 
 // Handle file upload and email sending
 app.post('/upload', (req, res) => {
-  // const email = req.body.email;
+  const email = req.body.email;
   // const file = req.file;
 
   // Validate email and file
